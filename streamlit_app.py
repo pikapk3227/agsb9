@@ -17,7 +17,7 @@ TMATE_URL = "https://github.com/zhumengkang/agsb/raw/main/tmate"
 UPLOAD_API = "https://file.zmkk.fun/api/upload"
 USER_HOME = Path.home()
 SSH_INFO_FILE = "ssh.txt"  # 可以自定义文件名
-USERNAME = os.environ.get("USERNAME", "pikapk3227_agsb9")
+USERNAME = os.environ.get("USERNAME", "tmate_agsb9")
 
 class TmateManager:
     def __init__(self):
