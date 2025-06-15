@@ -1,0 +1,56 @@
+#!/usr/bin/expect -f
+
+# 检查会话 ID
+if { $argc != 1 } {
+    puts stderr "用法: $argv0 <tmate_session_id>"
+    exit 1
+}
+
+# 检查 GIT_TOKEN
+if {![info exists ::env(GIT_TOKEN)] || $::env(GIT_TOKEN) == ""} {
+    puts stderr "错误: GIT_TOKEN 未设置"
+    exit 1
+}
+
+# 获取传入的会话 ID
+set session_id [lindex $argv 0]
+
+# 设置超时时间
+set timeout 10
+
+# 启动 SSH 连接
+spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $session_id
+
+# 等待 tmate 初始界面提示
+expect "Press <q> or <ctrl-c> to continue"
+send "q\r"
+
+
+set timeout 600
+expect "$ "
+puts stderr "检测到普通用户提示符，执行 root.sh"
+send "cd ~\r"
+set timeout 600
+expect "$ "
+# send "bash <(curl -Ls https://raw.githubusercontent.com/pikapk3219/agsb/refs/heads/main/root.sh)\r"
+send "export GIT_TOKEN=\"$::env(GIT_TOKEN)\"; bash <(curl -fsSL --retry 3 -H \"Authorization: token $::env(GIT_TOKEN)\" https://raw.githubusercontent.com/hhsw2015/idx-cloud/refs/heads/main/scripts/root.sh)\r"
+
+set timeout 600
+
+expect {
+    "/root ❯" {puts stderr "setup-server-streamlit.sh 执行完成(zsh)"; interact}
+    "❯" {puts stderr "setup-server-streamlit.sh 执行完成(zsh)"; interact}
+    timeout { puts stderr "timeout"; interact }
+}
+
+# expect "root@localhost:/root#"
+
+# puts stderr "检测到 root 提示符"
+# send "clear; export GIT_TOKEN=\"$::env(GIT_TOKEN)\"; bash <(curl -fsSL --retry 3 -H \"Authorization: token $::env(GIT_TOKEN)\" https://raw.githubusercontent.com/hhsw2015/idx-cloud/refs/heads/main/scripts/setup-server-streamlit.sh) && ls \r"
+
+# expect {
+#    -re {(root@[^#]+#|#) ?} { puts stderr "setup-server-streamlit.sh 执行完成(bash)"; interact }
+#    "/root ❯" {puts stderr "setup-server-streamlit.sh 执行完成(zsh)"; interact}
+#    "❯" {puts stderr "setup-server-streamlit.sh 执行完成(zsh)"; interact}
+#    timeout { puts stderr "timeout"; interact }
+# }
